@@ -1,42 +1,41 @@
 {
-  description = "Study Flow — Productivity app for focused studying";
+  description = "Study Flow development shell (Next.js + Tauri)";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs";
-  inputs.flake-utils.url = "github:numtide/flake-utils";
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+  };
 
-  outputs = { self, nixpkgs, flake-utils }: flake-utils.lib.eachDefaultSystem (system: let
-    pkgs = import nixpkgs { inherit system; };
-  in {
-    devShells.default = pkgs.mkShell {
-      nativeBuildInputs = with pkgs; [
-        cmake
-        pkg-config
-        python3
-        nodejs_22
-        pnpm
-        rustup
-        cargo
-        rustc
-      ];
+  outputs = { self, nixpkgs, flake-utils }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+        };
+      in
+      {
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            nodejs_22
+            rustc
+            cargo
+            rust-analyzer
+            pkg-config
+            gcc
+            glib
+            gtk3
+            webkitgtk_4_1
+            libsoup_3
+            openssl
+          ];
 
-      buildInputs = with pkgs; [
-        libwebkit2gtk-4_1
-        libgtk-3
-        libsoup-3
-        webkit2gtk-4_1
-        gtk3
-        libsoup
-        glib-networking
-        openssl
-        dbus
-        libadwaita
-      ];
+          # Helps crates find system headers and libs during build.
+          PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+          OPENSSL_DIR = "${pkgs.openssl.dev}";
 
-      shellHook = ''
-        rustup default 1.77
-
-        export PS1="\[\e[1;35m\]\u [ \[\e[0m\]\w\[\e[1;35m\] ]\$ \[\e[0m\]"
-      '';
-    };
-  });
+          shellHook = ''
+            export PS1="\[\e[1;35m\]\u [ \[\e[0m\]\w\[\e[1;35m\] ]\$ \[\e[0m\]"
+          '';
+        };
+      });
 }
