@@ -22,6 +22,16 @@ import {
   Sigma,
 } from "lucide-react";
 
+import { api } from "@/lib/api";
+
+const ICONS_MAP: Record<string, ComponentType<{ className?: string }>> = {
+  Atom,
+  BookOpen,
+  Cpu,
+  FlaskConical,
+  Sigma,
+};
+
 const CARD_W = 220;
 const CARD_H = 172;
 
@@ -112,82 +122,6 @@ function exitRectToward(
   if (bestT === Infinity) return { x: cx, y: cy };
   return { x: cx + bestT * dirx, y: cy + bestT * diry };
 }
-
-const INITIAL_POSITIONS: Record<string, { x: number; y: number }> = {
-  calc: { x: 24, y: 28 },
-  fisica: { x: 560, y: 28 },
-  algebra: { x: 24, y: 240 },
-  logica: { x: 320, y: 240 },
-  quimica: { x: 320, y: 420 },
-};
-
-const INITIAL_EDGES = new Set<string>([
-  edgeKey("calc", "fisica"),
-  edgeKey("calc", "algebra"),
-  edgeKey("calc", "logica"),
-  edgeKey("fisica", "logica"),
-  edgeKey("logica", "quimica"),
-]);
-
-const nodes: NodeItem[] = [
-  {
-    id: "calc",
-    title: "Cálculo I",
-    sub: "Limites e derivadas",
-    status: "Em progresso",
-    statusClass: "bg-[var(--accent-warm)]/20 text-[var(--accent-warm)]",
-    progress: 0.75,
-    icon: Sigma,
-    iconWrap: "bg-[var(--primary)]/30 text-[var(--primary)]",
-    meta: "2h hoje",
-    current: true,
-  },
-  {
-    id: "fisica",
-    title: "Física Geral",
-    sub: "Mecânica newtoniana",
-    status: "Pendente",
-    statusClass: "bg-zinc-500/25 text-zinc-400",
-    progress: 0.3,
-    icon: Atom,
-    iconWrap: "bg-[var(--secondary)]/25 text-[var(--secondary)]",
-    meta: "Amanhã",
-  },
-  {
-    id: "algebra",
-    title: "Álgebra Linear",
-    sub: "Espaços vetoriais",
-    status: "Revisão",
-    statusClass: "bg-[var(--success)]/20 text-[var(--success)]",
-    progress: 0.9,
-    icon: BookOpen,
-    iconWrap: "bg-emerald-500/15 text-emerald-300",
-    meta: "90% concluído",
-  },
-  {
-    id: "logica",
-    title: "Lógica Matemática",
-    sub: "Proposições e demonstrações",
-    status: "Próximo",
-    statusClass: "bg-zinc-500/25 text-zinc-400",
-    progress: 0,
-    icon: Cpu,
-    iconWrap: "bg-violet-500/20 text-violet-300",
-    meta: "Na fila",
-  },
-  {
-    id: "quimica",
-    title: "Química Orgânica",
-    sub: "Hidrocarbonetos",
-    status: "Bloqueado",
-    statusClass: "bg-zinc-600/30 text-zinc-500",
-    progress: 0,
-    icon: FlaskConical,
-    iconWrap: "bg-orange-500/15 text-orange-300/90",
-    meta: "Requer Física",
-    blocked: true,
-  },
-];
 
 type DraggableStudyCardProps = {
   n: NodeItem;
@@ -394,10 +328,35 @@ export function StudyPathCanvas() {
   const panSession = useRef({ sx: 0, sy: 0, px: 0, py: 0 });
   const panningRef = useRef(false);
 
-  const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>(() => ({
-    ...INITIAL_POSITIONS,
-  }));
-  const [edges, setEdges] = useState<Set<string>>(() => new Set(INITIAL_EDGES));
+  const [nodes, setNodes] = useState<NodeItem[]>([]);
+  const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>({});
+  const [edges, setEdges] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    api.get("/planning/roadmap").then((res: any) => {
+      const data = res.data.data;
+      if (data) {
+        const fetchedNodes: NodeItem[] = data.nodes.map((n: any) => ({
+          ...n,
+          icon: ICONS_MAP[n.icon] || BookOpen,
+        }));
+        setNodes(fetchedNodes);
+
+        const newPositions: Record<string, { x: number; y: number }> = {};
+        data.nodes.forEach((n: any) => {
+          newPositions[n.id] = { x: n.positionX, y: n.positionY };
+        });
+        setPositions(newPositions);
+
+        const newEdges = new Set<string>();
+        data.edges.forEach((e: any) => {
+          newEdges.add(edgeKey(e.sourceId, e.targetId));
+        });
+        setEdges(newEdges);
+      }
+    }).catch(() => {});
+  }, []);
+
   const [linkPending, setLinkPending] = useState<string | null>(null);
   /** Extremidade “livre” do preview de ligação (coordenadas do SVG / mapa). */
   const [linkPreviewEnd, setLinkPreviewEnd] = useState<{ x: number; y: number } | null>(null);
@@ -477,6 +436,12 @@ export function StudyPathCanvas() {
       else next.add(k);
       return next;
     });
+
+    api.post("/planning/edges", {
+      sourceId: anchor,
+      targetId: id
+    }).catch(() => {});
+
     linkAnchorRef.current = null;
     setLinkPending(null);
   }, [clearLinkSelection]);
@@ -708,7 +673,10 @@ export function StudyPathCanvas() {
                   onDragCommit={(id, dx, dy) => {
                     setPositions((prev) => {
                       const p = prev[id] ?? { x: 0, y: 0 };
-                      return { ...prev, [id]: { x: p.x + dx, y: p.y + dy } };
+                      const newX = p.x + dx;
+                      const newY = p.y + dy;
+                      api.patch(`/planning/nodes/${id}/position`, { x: newX, y: newY }).catch(() => {});
+                      return { ...prev, [id]: { x: newX, y: newY } };
                     });
                   }}
                   onDragOffset={setCardDragOffset}
@@ -777,8 +745,6 @@ export function StudyPathCanvas() {
               setZoom(1);
               setPan({ x: 0, y: 0 });
               clearAllCardDragOffsets();
-              setPositions({ ...INITIAL_POSITIONS });
-              setEdges(new Set(INITIAL_EDGES));
               clearLinkSelection();
             }}
             className="flex h-9 w-9 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-white/10 hover:text-white"

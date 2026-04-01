@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useMotionValue, useSpring } from "framer-motion";
 import { Send, Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { api } from "@/lib/api";
 
 type ChatMsg = { id: string; role: "user" | "assistant"; text: string };
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
@@ -336,13 +337,9 @@ export function FloatingAiChat() {
     setMessages((m) => [...m, userMsg]);
     setLoading(true);
     try {
-      const res = await fetch("/api/ai/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
-      });
-      const data = (await res.json()) as { reply?: string; error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Falha na resposta");
+      const res = await api.post("/ai/chat", { message: text });
+      const data = res.data;
+      
       setMessages((m) => [
         ...m,
         {

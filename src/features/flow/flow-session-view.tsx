@@ -16,6 +16,7 @@ import {
   VolumeX,
   Zap,
 } from "lucide-react";
+import { api } from "@/lib/api";
 
 type FlowState = "idle" | "running" | "paused" | "completed";
 type FlowMode = "focus" | "flashcards";
@@ -43,11 +44,10 @@ const DEMO_FLASHCARDS: FlashItem[] = [
 
 type Session = {
   id: string;
-  subject: string;
-  startedAt: string;
-  durationMinutes: number;
-  completed: boolean;
-  focusScore: number;
+  title: string;
+  createdAt: string;
+  duration: number;
+  status: string;
 };
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
@@ -82,10 +82,8 @@ export function FlowSessionView() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch("/api/flow/sessions");
-        if (!res.ok) return;
-        const data = (await res.json()) as { sessions: Session[] };
-        setSessions(data.sessions);
+        const res = await api.get("/flow/sessions");
+        setSessions(res.data.data);
       } catch {
         /* ignore */
       }
@@ -109,9 +107,9 @@ export function FlowSessionView() {
 
   const suggestedMinutes = useMemo(() => {
     if (!sessions.length) return 30;
-    const completed = sessions.filter((s) => s.completed);
+    const completed = sessions.filter((s) => s.status === "completed" || s.status === "in_progress");
     if (!completed.length) return 30;
-    const avg = completed.reduce((acc, s) => acc + s.durationMinutes, 0) / completed.length;
+    const avg = completed.reduce((acc, s) => acc + s.duration, 0) / completed.length;
     return clamp(Math.round(avg / 5) * 5, 20, 55);
   }, [sessions]);
 
@@ -125,7 +123,7 @@ export function FlowSessionView() {
     if (!sessions.length) return "09:00 - 11:00";
     const countByHour = new Map<number, number>();
     sessions.forEach((s) => {
-      const h = new Date(s.startedAt).getHours();
+      const h = new Date(s.createdAt).getHours();
       countByHour.set(h, (countByHour.get(h) ?? 0) + 1);
     });
     let bestHour = 9;
@@ -152,11 +150,11 @@ export function FlowSessionView() {
 
   const todayIso = new Date().toDateString();
   const todaySessions = useMemo(
-    () => sessions.filter((s) => new Date(s.startedAt).toDateString() === todayIso && s.completed),
+    () => sessions.filter((s) => new Date(s.createdAt).toDateString() === todayIso && s.status === "completed"),
     [sessions, todayIso],
   );
   const todayFocusMinutes = useMemo(
-    () => todaySessions.reduce((acc, s) => acc + s.durationMinutes, 0),
+    () => todaySessions.reduce((acc, s) => acc + s.duration, 0),
     [todaySessions],
   );
   const dailyGoalMinutes = 120;
@@ -267,19 +265,13 @@ export function FlowSessionView() {
           )
         : Math.max(1, Math.round((totalSeconds - secondsLeft) / 60));
       const subject = isFlash ? `Flashcards — ${studyTitle}` : "Flow Space";
-      const response = await fetch("/api/flow/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject,
-          durationMinutes,
-          completed: true,
-          focusScore: clamp(90 - interruptions * 6, 55, 98),
-        }),
+      const response = await api.post("/flow/sessions", {
+        title: subject,
+        duration: durationMinutes,
+        tags: [isFlash ? "flashcards" : "focus"],
       });
-      if (response.ok) {
-        const created = (await response.json()) as Session;
-        setSessions((prev) => [created, ...prev]);
+      if (response.data?.data) {
+        setSessions((prev) => [response.data.data, ...prev]);
       }
     } catch {
       /* ignore */

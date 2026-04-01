@@ -6,12 +6,26 @@ import { CheckCircle2, Clock, Search, Target } from "lucide-react";
 
 const bars = [28, 45, 62, 38, 72, 55, 48, 80, 65, 42, 58, 35, 22, 18, 12, 8, 5];
 
+import { api } from "@/lib/api";
+
+type AnalyticsData = {
+  totalFocusMinutes: number;
+  sessionsCompleted: number;
+  currentStreak: number;
+  dailyFocus: { date: string; minutes: number }[];
+};
+
 export function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<AnalyticsData | null>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 850);
-    return () => clearTimeout(timer);
+    api.get("/progress/analytics").then((res: any) => {
+      setData(res.data.data);
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    });
   }, []);
 
   if (loading) {
@@ -88,12 +102,20 @@ export function AnalyticsDashboard() {
       <div className="grid gap-4 sm:grid-cols-3">
         {[
           {
-            label: "Tempo total",
-            value: "42,5h",
+            label: "Tempo total (h)",
+            value: data ? (data.totalFocusMinutes / 60).toFixed(1) + "h" : "0h",
             icon: Clock,
-            trend: "+12%",
+            trend: "",
             trendUp: true,
             accent: "text-[var(--primary)]",
+          },
+          {
+            label: "Sessões feitas",
+            value: data ? String(data.sessionsCompleted) : "0",
+            icon: CheckCircle2,
+            trend: "",
+            trendUp: true,
+            accent: "text-[var(--success)]",
           },
           {
             label: "Focus score",
@@ -102,14 +124,6 @@ export function AnalyticsDashboard() {
             trend: "+5%",
             trendUp: true,
             accent: "text-[var(--accent-warm)]",
-          },
-          {
-            label: "Tarefas feitas",
-            value: "18",
-            icon: CheckCircle2,
-            trend: "-2%",
-            trendUp: false,
-            accent: "text-[var(--success)]",
           },
         ].map((c, i) => (
           <motion.div
@@ -154,7 +168,20 @@ export function AnalyticsDashboard() {
             </div>
           </div>
           <div className="mt-6 flex h-48 items-end justify-between gap-1 border-b border-white/10 pb-1">
-            {bars.map((h, i) => (
+            {data?.dailyFocus.slice(-17).map((day, i) => {
+              const maxMin = Math.max(1, ...data.dailyFocus.map(d => d.minutes));
+              const heightPct = Math.max(5, (day.minutes / maxMin) * 100);
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${heightPct}%` }}
+                  transition={{ delay: i * 0.02, duration: 0.4 }}
+                  className="min-h-[4px] flex-1 rounded-t-md bg-gradient-to-t from-[var(--primary)]/40 to-[var(--secondary)]/70"
+                  title={`${day.date}: ${day.minutes} min`}
+                />
+              )
+            }) || bars.map((h, i) => (
               <motion.div
                 key={i}
                 initial={{ height: 0 }}
@@ -213,7 +240,7 @@ export function AnalyticsDashboard() {
             <div className="flex items-center gap-2">
               <span className="text-2xl">🔥</span>
               <div>
-                <p className="text-sm font-semibold">14 dias de streak</p>
+                <p className="text-sm font-semibold">{data?.currentStreak || 0} dias de streak</p>
                 <p className="text-xs text-zinc-500">Continue firme!</p>
               </div>
             </div>

@@ -3,7 +3,22 @@
 import { motion } from "framer-motion";
 import { Play } from "lucide-react";
 
+import { api } from "@/lib/api";
+import { useEffect, useState } from "react";
+
+type Priority = { id: string; title: string; status: string };
+
 export function DailyPriorityCard() {
+  const [priority, setPriority] = useState<Priority | null>(null);
+
+  useEffect(() => {
+    api.get("/home/summary").then((res: any) => {
+      if (res.data?.data?.dailyPriority) {
+        setPriority(res.data.data.dailyPriority);
+      }
+    }).catch(() => {});
+  }, []);
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
@@ -18,13 +33,12 @@ export function DailyPriorityCard() {
       <span className="inline-flex rounded-full bg-[var(--accent-warm)]/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--accent-gold)]">
         Daily Priority
       </span>
-      <p className="mt-3 text-sm text-zinc-400">Physics — Chapter 4</p>
+      <p className="mt-3 text-sm text-zinc-400">Study Flow Task</p>
       <h2 className="mt-1 max-w-lg text-2xl font-semibold leading-tight md:text-[2rem]">
-        Quantum Mechanics &amp; Wave Function Analysis
+        {priority?.title || "Nenhuma tarefa prioritária no momento."}
       </h2>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-400">
-        Revise equações de Schrödinger e a interpretação da função de onda antes da sessão de
-        exercícios guiados.
+        {priority ? `Foque em concluir a tarefa: ${priority.title}. A constância leva ao sucesso.` : "Adicione tarefas ao seu Roadmap para visualizar sua prioridade diária."}
       </p>
       <div className="mt-4 flex flex-wrap gap-6 text-sm">
         <span className="text-[var(--secondary)]">45m tempo estimado</span>
