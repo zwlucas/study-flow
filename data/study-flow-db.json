@@ -1,0 +1,262 @@
+{
+  "sessions": [
+    {
+      "id": "14fcfb67-df17-4eb5-9b09-7ad56089409f",
+      "subject": "Flashcards — Neurociência avançada",
+      "startedAt": "2026-04-01T03:43:17.894Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 84
+    },
+    {
+      "id": "198b0092-84fe-4610-8034-ffb6fdec84ad",
+      "subject": "Flow Space",
+      "startedAt": "2026-04-01T03:43:03.003Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 84
+    },
+    {
+      "id": "f98be08a-6af9-4fdb-8f76-faa943cb14e7",
+      "subject": "Flashcards — Neurociência avançada",
+      "startedAt": "2026-04-01T03:22:47.288Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "7ca16548-7bab-4fa3-9120-0933132da09f",
+      "subject": "Flashcards — Neurociência avançada",
+      "startedAt": "2026-04-01T03:17:17.607Z",
+      "durationMinutes": 2,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "5037dbdd-753f-4eff-998d-2b9bac97c52b",
+      "subject": "Flow Space",
+      "startedAt": "2026-04-01T01:09:00.823Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "36a43f0c-f8af-49ab-b185-1f872fcd283e",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-27T16:40:07.312Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "483c56a4-b3d4-4663-a990-29e26cfcc7dd",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T18:22:15.512Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "6e13bc78-b870-40af-8c68-8c65ffb434f0",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T18:21:39.763Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "9d70e07a-0432-46e1-ad15-ee95675fa31d",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T18:20:32.521Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "0ce2e2e7-fc52-44fa-9cd0-13c677626ac2",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T18:20:01.842Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "56293099-d2c7-42a0-9564-f5a8d855a6a3",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T18:19:42.350Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "25e05440-f13b-4ffb-aa66-154b5df4a658",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T18:17:07.619Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "2a83f25c-19b7-498c-a5ce-b76e91094610",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T18:16:45.367Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "8b0d557b-12fa-4c8c-90c1-d0c79b31709a",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T18:16:36.993Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "d4f18e5a-658a-49df-a0e4-082ce768bf2d",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T18:16:32.102Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "fe5277ab-f62c-4e92-813b-c348fa8ec357",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T18:16:23.367Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "1b3e511f-ae88-491b-a1df-7bf1a9158dfd",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T18:16:05.042Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "627d8433-407f-45f1-ba49-fdcffa052c40",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T18:15:54.973Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "6f1ff11d-b213-4e2f-a922-9c7b4ca677c5",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T18:12:07.486Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 66
+    },
+    {
+      "id": "9da67563-c09f-4375-9e0c-0a08b3d333c4",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T17:57:26.008Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "00325f58-b5df-4e60-b430-4852b7a74e0b",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T17:53:54.588Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 55
+    },
+    {
+      "id": "a226c7e5-71c2-4aca-94d5-4b6c35f5c63b",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T17:53:12.787Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "427b9773-4a77-408c-9ac2-36dbbcdec645",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T17:53:04.723Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 72
+    },
+    {
+      "id": "e4726b82-2f66-4ff0-a03d-258d69d5a82d",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T17:52:56.976Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "f12fe510-9f1e-4007-aa91-16bfa1fa8150",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T17:52:38.908Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "75d2a223-31ba-4e2a-8acf-588ad78e4def",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T17:52:06.051Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "287f5c33-37b4-46c3-ad5e-4359ff156ee4",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T17:51:54.670Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "663a6ee6-b154-4b73-99e4-e52e397c0a7e",
+      "subject": "Flow Space",
+      "startedAt": "2026-03-26T17:51:08.353Z",
+      "durationMinutes": 1,
+      "completed": true,
+      "focusScore": 90
+    },
+    {
+      "id": "s1",
+      "subject": "Quantum Mechanics",
+      "startedAt": "2026-03-26T17:51:01.957Z",
+      "durationMinutes": 45,
+      "completed": true,
+      "focusScore": 92
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "title": "Resumo de Schrödinger",
+      "subject": "Física",
+      "status": "today",
+      "priority": "high",
+      "estimatedMinutes": 35
+    },
+    {
+      "id": "t2",
+      "title": "Flashcards de Álgebra",
+      "subject": "Matemática",
+      "status": "backlog",
+      "priority": "medium",
+      "estimatedMinutes": 20
+    },
+    {
+      "id": "t3",
+      "title": "Lista de revisão",
+      "subject": "Química",
+      "status": "done",
+      "priority": "low",
+      "estimatedMinutes": 25
+    }
+  ]
+}

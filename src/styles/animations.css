@@ -1,0 +1,29 @@
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 0.85;
+    filter: drop-shadow(0 0 12px rgba(123, 97, 255, 0.45));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 20px rgba(255, 149, 0, 0.35));
+  }
+}
+
+.float-soft {
+  animation: float-soft 4s ease-in-out infinite;
+}
+
+.pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}

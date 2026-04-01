@@ -1,0 +1,64 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Study Flow",
+  "version": "0.1.0",
+  "identifier": "com.studyflow.app",
+  "build": {
+    "frontendDist": "../out",
+    "devUrl": "http://localhost:3000",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "node scripts/build-for-tauri.mjs"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Study Flow",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": false,
+        "shadow": false,
+        "backgroundColor": "#0d0d0d"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "publisher": "Study Flow",
+    "copyright": "Copyright © 2026 Study Flow",
+    "category": "Productivity",
+    "shortDescription": "Foco profundo e produtividade nos estudos.",
+    "longDescription": "Study Flow é um app de produtividade para entrar em estado de fluxo: sessões de foco, planejamento, progresso e assistente de estudo.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "embedBootstrapper",
+        "silent": true
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["PortugueseBR", "English"],
+        "displayLanguageSelector": true,
+        "compression": "lzma",
+        "startMenuFolder": "Study Flow",
+        "installerIcon": "icons/icon.ico"
+      },
+      "wix": {
+        "language": ["pt-BR", "en-US"]
+      }
+    }
+  }
+}
