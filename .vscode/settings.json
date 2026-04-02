@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "Study Flow",
+            "database": "${workspaceFolder:study-flow}/server/studyflow.db"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

@@ -2,10 +2,12 @@
 
 import { motion } from "framer-motion";
 import { Bell, Grid3X3, Mic, Plus, Search, Send } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export function ChatView() {
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
+    <div className="grid gap-6 xl:grid-cols-[1fr_280px]">
       <div className="flex min-h-[calc(100vh-8rem)] flex-col rounded-3xl border border-white/5 bg-black/20">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/5 p-5">
           <div className="flex items-center gap-3">
@@ -41,35 +43,40 @@ export function ChatView() {
             initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="glass max-w-[92%] rounded-2xl rounded-bl-md p-4 text-sm"
+            className="flex max-w-[92%] gap-2.5"
           >
-            <div className="rounded-xl border border-white/10 bg-[var(--surface)]/80 p-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="font-semibold">Plano de estudo: Era Vargas</h3>
-                <span className="rounded-full bg-[var(--accent-gold)]/20 px-2 py-0.5 text-[10px] font-bold text-[var(--accent-gold)]">
-                  Alta prioridade
-                </span>
-              </div>
-              <ul className="mt-3 space-y-2 text-zinc-400">
-                <li>✓ Leitura teórica (30 min)</li>
-                <li>✓ Mapa mental (40 min)</li>
-                <li>○ Questões (50 min)</li>
-              </ul>
-              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full w-[35%] rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]" />
-              </div>
-              <p className="mt-1 text-right text-xs text-zinc-500">35% completo</p>
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)]/25 text-[var(--primary)] mt-1">
+              <Sparkles className="h-4 w-4" />
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button type="button" className="rounded-lg bg-white/10 px-3 py-1.5 text-xs">
-                Criar plano
-              </button>
-              <button type="button" className="rounded-lg bg-white/10 px-3 py-1.5 text-xs">
-                Resumir
-              </button>
-              <button type="button" className="rounded-lg bg-white/10 px-3 py-1.5 text-xs">
-                Explicar
-              </button>
+            <div className="min-w-0 overflow-x-auto rounded-2xl rounded-tl-sm border border-white/10 bg-white/5 px-4 py-3 text-sm text-zinc-200 prose prose-invert prose-sm prose-p:leading-relaxed prose-pre:my-0 prose-pre:bg-black/30 prose-pre:border prose-pre:border-white/10">
+              <div className="rounded-xl border border-white/10 bg-[var(--surface)]/80 p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="m-0 font-semibold text-white">Plano de estudo: Era Vargas</h3>
+                  <span className="rounded-full bg-[var(--accent-gold)]/20 px-2 py-0.5 text-[10px] font-bold text-[var(--accent-gold)]">
+                    Alta prioridade
+                  </span>
+                </div>
+                <ul className="mt-3 space-y-2 text-zinc-400 list-none pl-0">
+                  <li>✓ Leitura teórica (30 min)</li>
+                  <li>✓ Mapa mental (40 min)</li>
+                  <li>○ Questões (50 min)</li>
+                </ul>
+                <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
+                  <div className="h-full w-[35%] rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]" />
+                </div>
+                <p className="mt-1 text-right text-xs text-zinc-500 m-0">35% completo</p>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button type="button" className="rounded-lg bg-white/10 px-3 py-1.5 text-xs text-white">
+                  Criar plano
+                </button>
+                <button type="button" className="rounded-lg bg-white/10 px-3 py-1.5 text-xs text-white">
+                  Resumir
+                </button>
+                <button type="button" className="rounded-lg bg-white/10 px-3 py-1.5 text-xs text-white">
+                  Explicar
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>

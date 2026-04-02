@@ -26,7 +26,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className={`glass-surface premium-shadow flex h-full min-h-0 shrink-0 flex-col rounded-3xl p-4 transition-[width] duration-200 ${collapsed ? "w-[88px]" : "w-[260px]"}`}
+      className={`glass-surface premium-shadow flex h-full w-full min-h-0 shrink-0 flex-col rounded-3xl p-4 transition-[width] duration-200 ${collapsed ? "md:w-[88px]" : "md:w-[260px]"} relative`}
     >
       <div className="mb-8 flex items-center justify-between px-2">
         <Link href="/home" className="flex items-center gap-2">

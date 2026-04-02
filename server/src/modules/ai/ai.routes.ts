@@ -17,10 +17,13 @@ export async function aiRoutes(app: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { message } = request.body as { message: string };
+      const { message, history } = request.body as { 
+        message: string; 
+        history: { role: "user" | "model"; parts: { text: string }[] }[] 
+      };
 
       try {
-        const aiReply = await aiService.processChat(message);
+        const aiReply = await aiService.processChat(message, history);
         return reply.send({ reply: aiReply });
       } catch (error) {
         request.log.error(error);

@@ -13,7 +13,7 @@ export function WeeklyGoalRing() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="glass-surface premium-shadow relative h-full min-h-[188px] rounded-3xl p-5 lg:col-span-1"
+      className="glass-surface premium-shadow relative h-full min-h-[188px] rounded-3xl p-5 xl:col-span-1"
     >
       <Flame className="absolute right-5 top-5 h-5 w-5 text-[var(--accent-warm)]" />
       <div className="flex flex-col items-center">

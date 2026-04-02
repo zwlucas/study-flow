@@ -4,17 +4,6 @@ export class AiService {
   private genAI: GoogleGenerativeAI | null = null;
   private model: any = null;
 
-  constructor() {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (apiKey) {
-      this.genAI = new GoogleGenerativeAI(apiKey);
-      // Usamos o modelo flash por ser extremamente rápido e excelente para chats
-      this.model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    } else {
-      console.warn("⚠️ GEMINI_API_KEY não encontrada no .env. O Chat IA responderá com um mock.");
-    }
-  }
-
   // Define um prompt de sistema para dar o tom correto ao assistente
   private readonly SYSTEM_PROMPT = `
 Você é o "FlowAI", um assistente de estudos altamente produtivo focado em neurociência da aprendizagem e hiperfoco.
@@ -28,23 +17,36 @@ Regras absolutas:
 5. O sistema onde você vive se chama "Study Flow", use esse nome quando apropriado.
   `.trim();
 
-  async processChat(userMessage: string): Promise<string> {
+  constructor() {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (apiKey) {
+      this.genAI = new GoogleGenerativeAI(apiKey);
+      // Usamos o modelo flash e injetamos o system prompt nativamente
+      this.model = this.genAI.getGenerativeModel({ 
+        model: "gemini-3.1-flash-lite-preview",
+        systemInstruction: this.SYSTEM_PROMPT
+      });
+    } else {
+      console.warn("⚠️ GEMINI_API_KEY não encontrada no .env. O Chat IA responderá com um mock.");
+    }
+  }
+
+  async processChat(userMessage: string, history: { role: "user" | "model"; parts: { text: string }[] }[] = []): Promise<string> {
     if (!this.model) {
       // Fallback local se não houver chave de API configurada
       return "Estou funcionando em modo Offline porque a chave GEMINI_API_KEY não foi configurada no backend. \nMas posso te dizer que você deve focar no seu plano de estudos!";
     }
 
     try {
-      const result = await this.model.generateContent({
-        contents: [
-          { role: "user", parts: [{ text: this.SYSTEM_PROMPT + "\n\n" + "Mensagem do usuário: " + userMessage }] }
-        ],
+      const chat = this.model.startChat({
+        history: history,
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 800,
         },
       });
 
+      const result = await chat.sendMessage(userMessage);
       const response = result.response;
       return response.text() || "Desculpe, meu processamento neural falhou ao elaborar a resposta.";
     } catch (error) {

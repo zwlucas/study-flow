@@ -47,7 +47,7 @@ export function AnalyticsDashboard() {
             </div>
           ))}
         </div>
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
           <section className="glass-surface premium-shadow rounded-3xl p-6">
             <div className="flex items-center justify-between">
               <div className="skeleton-shimmer h-6 w-48 rounded-lg" />
@@ -270,7 +270,7 @@ export function AnalyticsDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-2">
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}

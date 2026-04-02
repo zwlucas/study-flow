@@ -1,5 +1,23 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function RootPage() {
-  redirect("/home");
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("@studyflow:token");
+    if (token) {
+      router.replace("/home");
+    } else {
+      router.replace("/login");
+    }
+  }, [router]);
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+    </div>
+  );
 }

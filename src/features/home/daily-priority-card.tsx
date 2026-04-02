@@ -24,7 +24,7 @@ export function DailyPriorityCard() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.05 }}
-      className="glass-surface premium-shadow relative h-full min-h-[188px] overflow-hidden rounded-3xl p-5 lg:col-span-3"
+      className="glass-surface premium-shadow relative h-full min-h-[188px] overflow-hidden rounded-3xl p-5 xl:col-span-3"
     >
       <div className="pointer-events-none absolute -right-16 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-[var(--primary)]/15 blur-3xl" />
       <div className="pointer-events-none absolute right-8 top-8 text-6xl font-black text-white/[0.03]">

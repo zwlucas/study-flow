@@ -3,6 +3,8 @@
 import { AnimatePresence, motion, useMotionValue, useSpring } from "framer-motion";
 import { Send, Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { api } from "@/lib/api";
 
 type ChatMsg = { id: string; role: "user" | "assistant"; text: string };
@@ -333,11 +335,26 @@ export function FloatingAiChat() {
     const text = input.trim();
     if (!text || loading) return;
     setInput("");
+    
+    // Map current messages to Gemini history format (excluding the first welcome message if we want, or map it too)
+    // The history needs to have { role: "user" | "model", parts: [{ text: string }] }
+    // Note: Our local state has role "assistant", but Gemini expects "model"
+    const history = messages
+      .filter(m => m.id !== "welcome") // Optional: Skip the local hardcoded welcome message to save tokens
+      .map((m) => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.text }],
+      }));
+
     const userMsg: ChatMsg = { id: crypto.randomUUID(), role: "user", text };
     setMessages((m) => [...m, userMsg]);
     setLoading(true);
+    
     try {
-      const res = await api.post("/ai/chat", { message: text });
+      const res = await api.post("/ai/chat", { 
+        message: text,
+        history: history 
+      });
       const data = res.data;
       
       setMessages((m) => [
@@ -427,13 +444,24 @@ export function FloatingAiChat() {
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`max-w-[92%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "ml-auto bg-(--primary) text-white"
-                      : "mr-auto border border-white/10 bg-white/5 text-zinc-200"
-                  }`}
+                  className={`flex w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
-                  {msg.text}
+                  {msg.role === "user" ? (
+                    <div className="max-w-[88%] rounded-2xl rounded-br-sm bg-(--primary) px-4 py-2.5 text-sm text-white shadow-lg shadow-(--primary)/20">
+                      <div className="whitespace-pre-wrap leading-relaxed">{msg.text}</div>
+                    </div>
+                  ) : (
+                    <div className="flex max-w-[92%] gap-2.5">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-(--primary)/25 text-(--primary) mt-1">
+                        <Sparkles className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 overflow-x-auto rounded-2xl rounded-tl-sm border border-white/10 bg-white/5 px-4 py-3 text-sm text-zinc-200 prose prose-invert prose-sm prose-p:leading-relaxed prose-pre:my-0 prose-pre:bg-black/30 prose-pre:border prose-pre:border-white/10">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {msg.text}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               {loading ? (
