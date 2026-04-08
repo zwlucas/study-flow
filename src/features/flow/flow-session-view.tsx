@@ -17,6 +17,7 @@ import {
   Zap,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { useSearchParams } from "next/navigation";
 
 type FlowState = "idle" | "running" | "paused" | "completed";
 type FlowMode = "focus" | "flashcards";
@@ -53,6 +54,7 @@ type Session = {
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
 export function FlowSessionView() {
+  const searchParams = useSearchParams();
   const [flowMode, setFlowMode] = useState<FlowMode>("focus");
   const [flowState, setFlowState] = useState<FlowState>("idle");
   const [targetMinutes, setTargetMinutes] = useState(25);
@@ -78,6 +80,15 @@ export function FlowSessionView() {
   const isFlash = flowMode === "flashcards";
   const currentCard = DEMO_FLASHCARDS[cardIndex] ?? DEMO_FLASHCARDS[0];
   const totalSeconds = targetMinutes * 60;
+
+  useEffect(() => {
+    // Integração Planning → Flow via query params (título/subtítulo).
+    const topic = searchParams.get("topic")?.trim();
+    const sub = searchParams.get("sub")?.trim();
+    if (topic) setStudyTitle(topic);
+    if (sub) setStudySubtitle(sub);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const load = async () => {

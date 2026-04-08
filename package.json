@@ -13,15 +13,23 @@
     "build:tauri": "tauri build"
   },
   "dependencies": {
+    "@blocknote/ariakit": "^0.47.3",
+    "@blocknote/core": "^0.47.3",
+    "@blocknote/react": "^0.47.3",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@tailwindcss/typography": "^0.5.19",
     "@tauri-apps/api": "^2.9.1",
     "axios": "^1.14.0",
     "framer-motion": "^12.38.0",
+    "lowlight": "^3.3.0",
     "lucide-react": "^0.544.0",
     "next": "16.2.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {

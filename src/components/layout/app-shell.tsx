@@ -105,9 +105,21 @@ export function AppShell({ children }: AppShellProps) {
             <Menu className="h-5 w-5" />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-0 studyflow-scroll">
-          <ContextHeader />
-          <PageTransition>{children}</PageTransition>
+        <div
+          className={`studyflow-scroll flex min-h-0 flex-1 flex-col overflow-x-hidden ${
+            pathname === "/ai"
+              ? "overflow-hidden p-0"
+              : pathname === "/notes"
+                ? "overflow-y-auto p-0"
+                : "overflow-y-auto p-4 md:p-0"
+          }`}
+        >
+          {pathname !== "/ai" ? <ContextHeader /> : null}
+          <PageTransition
+            className={pathname === "/ai" ? "flex min-h-0 flex-1 flex-col" : undefined}
+          >
+            {children}
+          </PageTransition>
         </div>
       </div>
     </>
@@ -118,7 +130,7 @@ export function AppShell({ children }: AppShellProps) {
       <>
         <div className="flex h-dvh flex-col overflow-hidden bg-background">
           <TauriTitleBar />
-          <div className="studyflow-scroll flex min-h-0 flex-1 md:gap-5 overflow-hidden md:p-5">
+          <div className="studyflow-scroll flex min-h-0 flex-1 overflow-hidden md:gap-5 md:p-5">
             {main}
           </div>
         </div>
@@ -129,7 +141,9 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <>
-      <div className="flex min-h-screen h-screen md:gap-5 md:p-5 overflow-hidden">{main}</div>
+      <div className="flex h-screen min-h-screen overflow-hidden md:gap-5 md:p-5">
+        {main}
+      </div>
       <FloatingAiChat />
     </>
   );

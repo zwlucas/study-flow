@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   ...(isTauriStatic
     ? { output: "export" as const, images: { unoptimized: true } }
     : {}),
+  transpilePackages: ["@blocknote/core", "@blocknote/react", "@blocknote/ariakit"],
   turbopack: {
     root: __dirname,
   },

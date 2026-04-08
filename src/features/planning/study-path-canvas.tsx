@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -11,18 +12,39 @@ import {
 import { motion, useMotionValue } from "framer-motion";
 import {
   Atom,
-  Bell,
   BookOpen,
   Cpu,
   FlaskConical,
   Minus,
+  Pencil,
   Plus,
   RotateCcw,
-  Search,
   Sigma,
 } from "lucide-react";
 
 import { api } from "@/lib/api";
+import { useRouter, useSearchParams } from "next/navigation";
+
+import {
+  PlanningSubjectModal,
+  PLANNING_ICON_KEYS,
+  type PlanningIconKey,
+  type PlanningSubjectModalInitial,
+} from "./planning-subject-modal";
+
+type SubjectModalState =
+  | { kind: "create"; suggestedPosition: { x: number; y: number } }
+  | {
+      kind: "edit";
+      nodeId: string;
+      initial: PlanningSubjectModalInitial;
+    };
+
+function toPlanningIconKey(k: string): PlanningIconKey {
+  return PLANNING_ICON_KEYS.includes(k as PlanningIconKey)
+    ? (k as PlanningIconKey)
+    : "BookOpen";
+}
 
 const ICONS_MAP: Record<string, ComponentType<{ className?: string }>> = {
   Atom,
@@ -33,7 +55,8 @@ const ICONS_MAP: Record<string, ComponentType<{ className?: string }>> = {
 };
 
 const CARD_W = 220;
-const CARD_H = 172;
+/** Altura total do nó (ações no rodapé dentro do mesmo retângulo). */
+const CARD_H = 200;
 
 type NodeItem = {
   id: string;
@@ -43,10 +66,12 @@ type NodeItem = {
   statusClass: string;
   progress: number;
   icon: ComponentType<{ className?: string }>;
+  iconKey: string;
   iconWrap: string;
   meta: string;
   current?: boolean;
   blocked?: boolean;
+  coverImage?: string | null;
 };
 
 function edgeKey(a: string, b: string) {
@@ -129,8 +154,13 @@ type DraggableStudyCardProps = {
   position: { x: number; y: number };
   zoom: number;
   selected: boolean;
+  /** Destaque vindo de `/planning?node=` (ex.: link das Notas). */
+  highlightFromUrl?: boolean;
   onLinkTap: (id: string) => void;
   onDragCommit: (id: string, dx: number, dy: number) => void;
+  onOpenFlow: (n: NodeItem) => void;
+  onEditCard: (n: NodeItem) => void;
+  onPlanningHoverChange: (id: string | null) => void;
   /** Offset em espaço do mapa (já dividido pelo zoom) para redesenhar arestas durante o arrasto. */
   onDragOffset?: (id: string, dx: number, dy: number) => void;
   onDragOffsetClear?: (id: string) => void;
@@ -142,8 +172,12 @@ function DraggableStudyCard({
   position: pos,
   zoom,
   selected,
+  highlightFromUrl = false,
   onLinkTap,
   onDragCommit,
+  onOpenFlow,
+  onEditCard,
+  onPlanningHoverChange,
   onDragOffset,
   onDragOffsetClear,
 }: DraggableStudyCardProps) {
@@ -151,10 +185,14 @@ function DraggableStudyCard({
   const dragY = useMotionValue(0);
   const [isDragging, setIsDragging] = useState(false);
   const [justReleased, setJustReleased] = useState(false);
+  const [isPointerInside, setIsPointerInside] = useState(false);
+  const draggingRef = useRef(false);
   const landTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const Icon = n.icon;
   const pct = Math.round(n.progress * 100);
   const z = zoom > 0 ? zoom : 1;
+  const emphasized = selected || highlightFromUrl;
+  const solidBackdrop = isPointerInside || isDragging;
 
   useEffect(() => {
     return () => {
@@ -173,7 +211,7 @@ function DraggableStudyCard({
       ? "0 28px 64px rgba(0,0,0,0.55), 0 0 0 2px rgba(90,200,250,0.55), 0 0 48px rgba(90,200,250,0.2)"
       : justReleased
         ? "0 20px 52px rgba(0,0,0,0.45), 0 0 0 2px rgba(90,200,250,0.4), 0 0 36px rgba(90,200,250,0.18)"
-        : selected
+        : emphasized
           ? "0 16px 48px rgba(0,0,0,0.42), 0 0 0 2px rgba(123,97,255,0.55), 0 0 32px rgba(123,97,255,0.2)"
           : "0 10px 36px rgba(0,0,0,0.38), 0 0 0 1px rgba(255,255,255,0.07)";
 
@@ -182,16 +220,15 @@ function DraggableStudyCard({
       ? "rgba(90, 200, 250, 0.55)"
       : justReleased
         ? "rgba(90, 200, 250, 0.42)"
-        : selected
+        : emphasized
           ? "rgba(123, 97, 255, 0.48)"
           : "rgba(255, 255, 255, 0.1)";
 
-  const innerBg =
-    isDragging
-      ? "rgba(24, 32, 48, 0.82)"
-      : selected
-        ? "rgba(22, 18, 38, 0.78)"
-        : "rgba(21, 21, 21, 0.65)";
+  const innerBg = solidBackdrop
+    ? "rgb(16, 16, 18)"
+    : emphasized
+      ? "rgba(22, 18, 38, 0.88)"
+      : "rgba(21, 21, 21, 0.72)";
 
   const springLayout = { type: "spring" as const, stiffness: 360, damping: 32, mass: 0.82 };
   const springSnap = { type: "spring" as const, stiffness: 480, damping: 36, mass: 0.72 };
@@ -201,12 +238,13 @@ function DraggableStudyCard({
       ? 1.042
       : justReleased
         ? [1.032, 1.004, 1]
-        : selected
+        : emphasized
           ? 1.018
           : 1;
 
   return (
     <motion.div
+      data-planning-card={n.id}
       style={{
         position: "absolute",
         left: pos.x,
@@ -227,7 +265,7 @@ function DraggableStudyCard({
         y: 0,
         rotate: isDragging ? -0.45 : 0,
         boxShadow: outerShadow,
-        zIndex: isDragging ? 50 : selected ? 12 : 8,
+        zIndex: isDragging ? 50 : isPointerInside ? 44 : emphasized ? 12 : 8,
       }}
       transition={{
         opacity: { delay: i * 0.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] },
@@ -245,14 +283,25 @@ function DraggableStudyCard({
         isDragging
           ? undefined
           : {
-              scale: selected ? 1.028 : 1.014,
+              scale: emphasized ? 1.028 : 1.014,
               transition: { type: "spring", stiffness: 420, damping: 30 },
             }
       }
       whileTap={{ scale: 0.985, transition: { type: "spring", stiffness: 620, damping: 38 } }}
       whileDrag={{ cursor: "grabbing" }}
+      onPointerEnter={() => {
+        setIsPointerInside(true);
+        onPlanningHoverChange(n.id);
+      }}
+      onPointerLeave={() => {
+        setIsPointerInside(false);
+        if (!draggingRef.current) onPlanningHoverChange(null);
+      }}
       onPointerDown={(e) => e.stopPropagation()}
-      onDragStart={() => setIsDragging(true)}
+      onDragStart={() => {
+        draggingRef.current = true;
+        setIsDragging(true);
+      }}
       onDrag={(_, info) => {
         onDragOffset?.(n.id, info.offset.x / z, info.offset.y / z);
       }}
@@ -262,10 +311,11 @@ function DraggableStudyCard({
         onDragOffsetClear?.(n.id);
         dragX.set(0);
         dragY.set(0);
+        draggingRef.current = false;
         setIsDragging(false);
         flashLanded();
       }}
-      className="cursor-grab rounded-2xl"
+      className="cursor-grab rounded-2xl outline-none ring-0"
     >
       {n.current ? (
         <span className="absolute -top-2.5 left-3 z-10 rounded-full bg-[var(--primary)] px-2 py-0.5 text-[10px] font-semibold text-white shadow-lg shadow-[var(--primary)]/35">
@@ -273,7 +323,7 @@ function DraggableStudyCard({
         </span>
       ) : null}
       <motion.div
-        className="relative h-full rounded-2xl border p-4 backdrop-blur-[24px]"
+        className={`relative flex h-full flex-col rounded-2xl border p-3.5 sm:p-4 ${solidBackdrop ? "" : "backdrop-blur-md"}`}
         animate={{
           borderColor: innerBorder,
           backgroundColor: innerBg,
@@ -288,33 +338,63 @@ function DraggableStudyCard({
               : springLayout,
         }}
       >
-        <div className="flex items-start justify-between gap-2">
-          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${n.iconWrap}`}>
-            <Icon className="h-5 w-5" />
+        <div className="min-h-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${n.iconWrap}`}>
+              <Icon className="h-5 w-5" />
+            </div>
+            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${n.statusClass}`}>
+              {n.status}
+            </span>
           </div>
-          <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${n.statusClass}`}>
-            {n.status}
-          </span>
+          <h3 className="mt-2 line-clamp-2 font-semibold leading-snug text-white">{n.title}</h3>
+          <p className="mt-1 line-clamp-2 text-xs leading-snug text-zinc-500">{n.sub}</p>
+          <div className="mt-2 flex items-center justify-between gap-2 text-[11px]">
+            <span className="truncate text-zinc-500">{n.meta}</span>
+            <span className={`shrink-0 font-semibold ${n.blocked ? "text-zinc-600" : "text-white"}`}>
+              {n.blocked ? "—" : `${pct}%`}
+            </span>
+          </div>
+          <div
+            className={`mt-2 h-1.5 overflow-hidden rounded-full ${n.blocked ? "border border-dashed border-white/10 bg-transparent" : "bg-white/10"}`}
+          >
+            {!n.blocked ? (
+              <motion.div
+                className="h-full rounded-full bg-[var(--primary)]"
+                initial={{ width: 0 }}
+                animate={{ width: `${pct}%` }}
+                transition={{ delay: 0.15 + i * 0.04, duration: 0.55, ease: "easeOut" }}
+              />
+            ) : null}
+          </div>
         </div>
-        <h3 className="mt-3 font-semibold text-white">{n.title}</h3>
-        <p className="text-xs text-zinc-500">{n.sub}</p>
-        <div className="mt-3 flex items-center justify-between gap-2 text-[11px]">
-          <span className="text-zinc-500">{n.meta}</span>
-          <span className={`font-semibold ${n.blocked ? "text-zinc-600" : "text-white"}`}>
-            {n.blocked ? "—" : `${pct}%`}
-          </span>
-        </div>
-        <div
-          className={`mt-2 h-1.5 overflow-hidden rounded-full ${n.blocked ? "border border-dashed border-white/10 bg-transparent" : "bg-white/10"}`}
-        >
-          {!n.blocked ? (
-            <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]"
-              initial={{ width: 0 }}
-              animate={{ width: `${pct}%` }}
-              transition={{ delay: 0.15 + i * 0.04, duration: 0.55, ease: "easeOut" }}
-            />
-          ) : null}
+
+        <div className="mt-auto shrink-0 border-t border-white/[0.08] pt-2.5">
+          <div className="grid grid-cols-2 gap-1.5">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenFlow(n);
+              }}
+              className="inline-flex min-h-[2.25rem] min-w-0 items-center justify-center rounded-lg bg-white/[0.06] px-2 py-1.5 text-[10px] font-semibold leading-tight text-zinc-200 transition hover:bg-white/[0.11] hover:text-white sm:text-[11px]"
+            >
+              Abrir no Flow
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditCard(n);
+              }}
+              className="inline-flex min-h-[2.25rem] min-w-0 items-center justify-center gap-1 rounded-lg bg-white/[0.06] px-2 py-1.5 text-[10px] font-semibold leading-tight text-zinc-200 transition hover:bg-[var(--primary)]/15 hover:text-white sm:text-[11px]"
+              aria-label="Editar matéria"
+              title="Editar matéria"
+            >
+              <Pencil className="h-3 w-3 shrink-0 text-[var(--primary)] sm:h-3.5 sm:w-3.5" />
+              Editar
+            </button>
+          </div>
         </div>
       </motion.div>
     </motion.div>
@@ -322,6 +402,12 @@ function DraggableStudyCard({
 }
 
 export function StudyPathCanvas() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const focusNodeFromUrl = searchParams.get("node");
+  const mapAreaRef = useRef<HTMLDivElement>(null);
+  const didFocusPanRef = useRef<string | null>(null);
+
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -331,31 +417,97 @@ export function StudyPathCanvas() {
   const [nodes, setNodes] = useState<NodeItem[]>([]);
   const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>({});
   const [edges, setEdges] = useState<Set<string>>(new Set());
+  const [subjectModal, setSubjectModal] = useState<SubjectModalState | null>(
+    null,
+  );
+  const [hoveredPlanningNodeId, setHoveredPlanningNodeId] = useState<
+    string | null
+  >(null);
+
+  const onPlanningHoverChange = useCallback((id: string | null) => {
+    setHoveredPlanningNodeId(id);
+  }, []);
+
+  const loadRoadmap = useCallback(() => {
+    api
+      .get("/planning/roadmap")
+      .then((res: any) => {
+        const data = res.data.data;
+        if (data) {
+          const fetchedNodes: NodeItem[] = data.nodes.map((n: any) => ({
+            ...n,
+            icon: ICONS_MAP[n.icon] || BookOpen,
+            iconKey: n.icon,
+            coverImage: n.coverImage ?? null,
+          }));
+          setNodes(fetchedNodes);
+
+          const newPositions: Record<string, { x: number; y: number }> = {};
+          data.nodes.forEach((n: any) => {
+            newPositions[n.id] = { x: n.positionX, y: n.positionY };
+          });
+          setPositions(newPositions);
+
+          const newEdges = new Set<string>();
+          data.edges.forEach((e: any) => {
+            newEdges.add(edgeKey(e.sourceId, e.targetId));
+          });
+          setEdges(newEdges);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
-    api.get("/planning/roadmap").then((res: any) => {
-      const data = res.data.data;
-      if (data) {
-        const fetchedNodes: NodeItem[] = data.nodes.map((n: any) => ({
-          ...n,
-          icon: ICONS_MAP[n.icon] || BookOpen,
-        }));
-        setNodes(fetchedNodes);
+    loadRoadmap();
+  }, [loadRoadmap]);
 
-        const newPositions: Record<string, { x: number; y: number }> = {};
-        data.nodes.forEach((n: any) => {
-          newPositions[n.id] = { x: n.positionX, y: n.positionY };
-        });
-        setPositions(newPositions);
+  const openNewSubjectModal = useCallback(() => {
+    const ids = Object.keys(positions);
+    if (!ids.length) {
+      setSubjectModal({
+        kind: "create",
+        suggestedPosition: { x: 160, y: 120 },
+      });
+      return;
+    }
+    let maxX = -Infinity;
+    let sumY = 0;
+    for (const id of ids) {
+      const p = positions[id];
+      maxX = Math.max(maxX, p.x + CARD_W);
+      sumY += p.y;
+    }
+    setSubjectModal({
+      kind: "create",
+      suggestedPosition: {
+        x: Math.round(maxX + 32),
+        y: Math.round(sumY / ids.length),
+      },
+    });
+  }, [positions]);
 
-        const newEdges = new Set<string>();
-        data.edges.forEach((e: any) => {
-          newEdges.add(edgeKey(e.sourceId, e.targetId));
-        });
-        setEdges(newEdges);
-      }
-    }).catch(() => {});
-  }, []);
+  useEffect(() => {
+    didFocusPanRef.current = null;
+  }, [focusNodeFromUrl]);
+
+  useLayoutEffect(() => {
+    if (!focusNodeFromUrl) return;
+    if (!nodes.length) return;
+    if (!positions[focusNodeFromUrl]) return;
+    if (didFocusPanRef.current === focusNodeFromUrl) return;
+    const el = document.querySelector(`[data-planning-card="${focusNodeFromUrl}"]`);
+    const map = mapAreaRef.current;
+    if (!(el instanceof HTMLElement) || !map) return;
+    const er = el.getBoundingClientRect();
+    const mr = map.getBoundingClientRect();
+    const ecx = er.left + er.width / 2;
+    const ecy = er.top + er.height / 2;
+    const mcx = mr.left + mr.width / 2;
+    const mcy = mr.top + mr.height / 2;
+    setPan((p) => ({ x: p.x + (mcx - ecx), y: p.y + (mcy - ecy) }));
+    didFocusPanRef.current = focusNodeFromUrl;
+  }, [focusNodeFromUrl, nodes, positions]);
 
   const [linkPending, setLinkPending] = useState<string | null>(null);
   /** Extremidade “livre” do preview de ligação (coordenadas do SVG / mapa). */
@@ -446,6 +598,28 @@ export function StudyPathCanvas() {
     setLinkPending(null);
   }, [clearLinkSelection]);
 
+  const onOpenFlow = useCallback(
+    (n: NodeItem) => {
+      const topic = encodeURIComponent(n.title);
+      const sub = encodeURIComponent(n.sub);
+      router.push(`/flow?topic=${topic}&sub=${sub}`);
+    },
+    [router],
+  );
+
+  const onEditCard = useCallback((n: NodeItem) => {
+    setSubjectModal({
+      kind: "edit",
+      nodeId: n.id,
+      initial: {
+        title: n.title,
+        sub: n.sub,
+        icon: toPlanningIconKey(n.iconKey),
+        coverImage: n.coverImage ?? null,
+      },
+    });
+  }, []);
+
   useEffect(() => {
     if (!linkPending) {
       setLinkPreviewEnd(null);
@@ -508,7 +682,7 @@ export function StudyPathCanvas() {
       const l = liveDragOffsetRef.current[id];
       return l ? { x: p.x + l.dx, y: p.y + l.dy } : p;
     };
-    const list: { key: string; d: string }[] = [];
+    const list: { key: string; d: string; dim: boolean }[] = [];
     for (const k of edges) {
       const parsed = parseEdgeKey(k);
       if (!parsed) continue;
@@ -521,13 +695,15 @@ export function StudyPathCanvas() {
       const cbY = pb.y + CARD_H / 2;
       const pA = exitRectToward(pa.x, pa.y, CARD_W, CARD_H, caX, caY, cbX, cbY);
       const pB = exitRectToward(pb.x, pb.y, CARD_W, CARD_H, cbX, cbY, caX, caY);
+      const dim = !!hoveredPlanningNodeId;
       list.push({
         key: k,
         d: cubicPathBetween(pA.x, pA.y, pB.x, pB.y),
+        dim,
       });
     }
     return list;
-  }, [edges, positions, dragLinesRevision]);
+  }, [edges, positions, dragLinesRevision, hoveredPlanningNodeId]);
 
   const linkPreviewPath = useMemo(() => {
     if (!linkPending || !linkPreviewEnd) return null;
@@ -543,8 +719,9 @@ export function StudyPathCanvas() {
   return (
     <div className="relative flex min-h-[600px] flex-col overflow-hidden rounded-3xl border border-white/8 bg-zinc-950/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.35]"
+        className="pointer-events-none absolute inset-0 transition-opacity duration-200"
         style={{
+          opacity: hoveredPlanningNodeId ? 0.1 : 0.35,
           backgroundImage: `
             linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px)
@@ -554,42 +731,25 @@ export function StudyPathCanvas() {
       />
 
       <div className="relative z-20 flex flex-col gap-4 border-b border-white/6 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-4">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight text-white">Plano de estudos</h2>
-            <p className="text-xs text-zinc-500">Seu mapa de aprendizado e conexões entre matérias</p>
-            {linkPending ? (
-              <p className="mt-2 text-[11px] font-medium text-[var(--primary)]">
-                Toque em outra matéria para associar ou desassociar. Toque de novo na mesma para cancelar.
-              </p>
-            ) : (
-              <p className="mt-2 text-[11px] text-zinc-600">
-                Arraste os cards. Toque em um e depois em outro para ligar ou desligar uma linha.
-              </p>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className="glass flex h-10 w-10 items-center justify-center rounded-xl text-zinc-300 transition hover:bg-white/10 hover:text-white"
-              aria-label="Buscar matéria"
-            >
-              <Search className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              className="glass flex h-10 w-10 items-center justify-center rounded-xl text-zinc-300 transition hover:bg-white/10 hover:text-white"
-              aria-label="Notificações"
-            >
-              <Bell className="h-4 w-4" />
-            </button>
-          </div>
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight text-white">Plano de estudos</h2>
+          <p className="text-xs text-zinc-500">Seu mapa de aprendizado e conexões entre matérias</p>
+          {linkPending ? (
+            <p className="mt-2 text-[11px] font-medium text-[var(--primary)]">
+              Toque em outra matéria para associar ou desassociar. Toque de novo na mesma para cancelar.
+            </p>
+          ) : (
+            <p className="mt-2 text-[11px] text-zinc-600">
+              Arraste os cards. Toque em um e depois em outro para ligar ou desligar uma linha.
+            </p>
+          )}
         </div>
         <motion.button
           type="button"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="flex items-center gap-2 self-start rounded-2xl bg-gradient-to-r from-[var(--primary)] to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_28px_rgba(123,97,255,0.45),0_8px_24px_rgba(0,0,0,0.35)] sm:self-center"
+          onClick={openNewSubjectModal}
+          className="flex items-center gap-2 self-start rounded-2xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_28px_rgba(123,97,255,0.45),0_8px_24px_rgba(0,0,0,0.35)] sm:self-center"
         >
           <Plus className="h-4 w-4" />
           Nova matéria
@@ -598,6 +758,7 @@ export function StudyPathCanvas() {
 
       <div className="relative z-10 flex-1 overflow-hidden px-3 pb-44 pt-4 max-sm:pb-52 sm:px-5 sm:pb-32">
         <div
+          ref={mapAreaRef}
           role="application"
           aria-label="Mapa de estudos — arraste o fundo para mover o mapa ou arraste os cards"
           className={`relative min-h-[440px] cursor-grab touch-none select-none ${isPanning ? "cursor-grabbing" : ""}`}
@@ -616,8 +777,8 @@ export function StudyPathCanvas() {
               className="pointer-events-none absolute left-0 top-0 z-[1] h-full min-h-[560px] w-full overflow-visible"
               aria-hidden
             >
-              {edgePaths.map(({ key, d }) => (
-                <g key={key}>
+              {edgePaths.map(({ key, d, dim }) => (
+                <g key={key} opacity={dim ? 0.06 : 1} className="transition-opacity duration-200">
                   <path
                     d={d}
                     fill="none"
@@ -669,7 +830,11 @@ export function StudyPathCanvas() {
                   position={pos}
                   zoom={zoom}
                   selected={selected}
+                  highlightFromUrl={focusNodeFromUrl === n.id}
                   onLinkTap={handleLinkTap}
+                  onOpenFlow={onOpenFlow}
+                  onEditCard={onEditCard}
+                  onPlanningHoverChange={onPlanningHoverChange}
                   onDragCommit={(id, dx, dy) => {
                     setPositions((prev) => {
                       const p = prev[id] ?? { x: 0, y: 0 };
@@ -768,6 +933,31 @@ export function StudyPathCanvas() {
           </span>
         </div>
       </div>
+
+      {subjectModal ? (
+        <PlanningSubjectModal
+          key={
+            subjectModal.kind === "edit"
+              ? subjectModal.nodeId
+              : "create"
+          }
+          open
+          mode={subjectModal.kind === "create" ? "create" : "edit"}
+          suggestedPosition={
+            subjectModal.kind === "create"
+              ? subjectModal.suggestedPosition
+              : undefined
+          }
+          editNodeId={
+            subjectModal.kind === "edit" ? subjectModal.nodeId : undefined
+          }
+          initial={
+            subjectModal.kind === "edit" ? subjectModal.initial : undefined
+          }
+          onClose={() => setSubjectModal(null)}
+          onSuccess={loadRoadmap}
+        />
+      ) : null}
     </div>
   );
 }

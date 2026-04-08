@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useMotionValue, useSpring } from "framer-motion";
 import { Send, Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { api } from "@/lib/api";
@@ -43,6 +44,7 @@ function normFromPosition(x: number, y: number, fabSize: number, margin: number)
 }
 
 export function FloatingAiChat() {
+  const pathname = usePathname();
   const FAB_SIZE = 60;
   const FAB_MARGIN = 24;
   const PANEL_MAX_W = 380;
@@ -378,6 +380,8 @@ export function FloatingAiChat() {
       setLoading(false);
     }
   };
+
+  if (pathname === "/ai") return null;
 
   return (
     <>

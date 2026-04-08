@@ -5,9 +5,10 @@ import { usePathname } from "next/navigation";
 
 type PageTransitionProps = {
   children: React.ReactNode;
+  className?: string;
 };
 
-export function PageTransition({ children }: PageTransitionProps) {
+export function PageTransition({ children, className }: PageTransitionProps) {
   const pathname = usePathname();
 
   return (
@@ -18,6 +19,7 @@ export function PageTransition({ children }: PageTransitionProps) {
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         exit={{ opacity: 0, y: -4, filter: "blur(2px)" }}
         transition={{ duration: 0.24, ease: "easeOut" }}
+        className={className}
       >
         {children}
       </motion.div>

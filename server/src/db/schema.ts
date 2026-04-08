@@ -72,6 +72,7 @@ export const roadmapNodes = sqliteTable(
     blocked: integer("blocked", { mode: "boolean" }),
     positionX: integer("position_x").notNull(),
     positionY: integer("position_y").notNull(),
+    coverImage: text("cover_image"),
     createdAt: text("created_at")
       .default(sql`(CURRENT_TIMESTAMP)`)
       .notNull(),

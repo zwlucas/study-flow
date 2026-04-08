@@ -19,6 +19,8 @@ import { aiRoutes } from "./modules/ai/ai.routes";
 export async function buildApp() {
   const app = fastify({
     logger: true, // Pino logger nativo para rastreabilidade
+    /** Capas do Planning em data URL (~10 MB ficheiro em base64). */
+    bodyLimit: 20 * 1024 * 1024,
   });
 
   // Providers para Zod (Validação de Input)

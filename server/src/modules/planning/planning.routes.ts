@@ -1,7 +1,13 @@
 import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { getRoadmapResponseSchema, updateNodePositionSchema } from "./planning.schemas";
+import {
+  createPlanningNodeSchema,
+  getRoadmapResponseSchema,
+  planningNodeDtoSchema,
+  updateNodePositionSchema,
+  updatePlanningNodeSchema,
+} from "./planning.schemas";
 import { PlanningService } from "./planning.services";
 
 export default async function planningRoutes(app: FastifyInstance) {
@@ -25,6 +31,22 @@ export default async function planningRoutes(app: FastifyInstance) {
     }
   );
 
+  typedApp.post(
+    "/api/planning/nodes",
+    {
+      schema: {
+        body: createPlanningNodeSchema,
+        response: {
+          201: z.object({ data: planningNodeDtoSchema }),
+        },
+      },
+    },
+    async (request, reply) => {
+      const node = await planningService.createNode(request.user.id, request.body);
+      return reply.code(201).send({ data: node });
+    },
+  );
+
   typedApp.patch(
     "/api/planning/nodes/:id/position",
     {
@@ -43,6 +65,27 @@ export default async function planningRoutes(app: FastifyInstance) {
       );
       return reply.send({ data: updated });
     }
+  );
+
+  typedApp.patch(
+    "/api/planning/nodes/:id",
+    {
+      schema: {
+        params: z.object({ id: z.string() }),
+        body: updatePlanningNodeSchema,
+        response: {
+          200: z.object({ data: planningNodeDtoSchema }),
+        },
+      },
+    },
+    async (request, reply) => {
+      const node = await planningService.updateNode(
+        request.user.id,
+        request.params.id,
+        request.body,
+      );
+      return reply.send({ data: node });
+    },
   );
 
   typedApp.post(

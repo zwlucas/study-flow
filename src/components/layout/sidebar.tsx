@@ -82,13 +82,39 @@ export function Sidebar() {
       </nav>
 
       <div className="mt-auto space-y-2 border-t border-white/10 pt-4">
-        <button
-          type="button"
-          className={`flex w-full items-center rounded-2xl py-2 text-sm text-zinc-500 transition hover:bg-white/5 hover:text-zinc-300 ${collapsed ? "justify-center px-2" : "gap-3 px-3"}`}
-        >
-          <Settings className="h-[18px] w-[18px]" />
-          {!collapsed ? "Configurações" : null}
-        </button>
+        {(() => {
+          const active = pathname === "/settings";
+          return (
+            <Link
+              href="/settings"
+              className={`group relative flex w-full items-center rounded-2xl py-2 text-sm transition-colors ${collapsed ? "justify-center px-2" : "gap-3 px-3"}`}
+            >
+              {active ? (
+                <motion.span
+                  layoutId="sidebar-active"
+                  className="absolute inset-0 rounded-2xl bg-[var(--primary)]/25"
+                  transition={{ type: "spring", stiffness: 380, damping: 34 }}
+                />
+              ) : null}
+              <Settings
+                className={`relative z-10 h-[18px] w-[18px] ${
+                  active ? "text-white" : "text-zinc-500"
+                }`}
+              />
+              {!collapsed ? (
+                <span
+                  className={`relative z-10 font-medium ${active ? "text-white" : "text-zinc-400"}`}
+                >
+                  Configurações
+                </span>
+              ) : (
+                <span className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 z-30 -translate-y-1/2 rounded-md border border-white/10 bg-black/80 px-2 py-1 text-xs whitespace-nowrap text-zinc-200 opacity-0 transition group-hover:opacity-100">
+                  Configurações
+                </span>
+              )}
+            </Link>
+          );
+        })()}
         <div className={`glass flex rounded-2xl p-3 ${collapsed ? "justify-center" : "items-center gap-3"}`}>
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--secondary)]/40 to-[var(--primary)]/50 text-xs font-semibold">
             AM
