@@ -53,13 +53,22 @@ jobs:
         run: npm ci
 
       - name: build tauri app
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: ${{ matrix.args }}
-          tagName: v__VERSION__
-          releaseName: 'Study Flow v__VERSION__'
-          releaseBody: 'Veja as novidades nesta release.'
-          releaseDraft: true
-          prerelease: false
+
+      - name: upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-${{ matrix.platform }}${{ matrix.args == '--target aarch64-apple-darwin' && '-arm64' || '' }}${{ matrix.args == '--target x86_64-apple-darwin' && '-x64' || '' }}
+          path: |
+            src-tauri/target/release/bundle/**/*.dmg
+            src-tauri/target/release/bundle/**/*.app
+            src-tauri/target/release/bundle/**/*.deb
+            src-tauri/target/release/bundle/**/*.AppImage
+            src-tauri/target/release/bundle/**/*.msi
+            src-tauri/target/release/bundle/**/*.exe
+            src-tauri/target/release/bundle/**/*.zip
+          if-no-files-found: ignore
