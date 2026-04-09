@@ -3,7 +3,7 @@ name: Release Tauri App
 on:
   push:
     branches:
-      - "*""
+      - "**"
   workflow_dispatch:
 
 permissions:
