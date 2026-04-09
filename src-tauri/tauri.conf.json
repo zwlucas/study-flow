@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Study Flow",
   "version": "0.1.0",
-  "identifier": "com.studyflow.app",
+  "identifier": "com.studyflow.desktop",
   "build": {
     "frontendDist": "../out",
     "devUrl": "http://localhost:3000",
