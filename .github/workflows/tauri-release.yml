@@ -2,8 +2,8 @@ name: Release Tauri App
 
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - "*""
   workflow_dispatch:
 
 permissions:
@@ -57,14 +57,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: Study Flow ${{ github.ref_name }}
+          tagName: build-${{ github.sha }}
+          releaseName: Study Flow build-${{ github.sha }}
           releaseBody: |
-            Build automatizado do Study Flow (Tauri).
+            Build automatizado do Study Flow (Tauri) para o commit ${{ github.sha }}.
 
             Plataformas:
             - Linux
             - Windows
             - macOS
           releaseDraft: false
-          prerelease: false
+          prerelease: true
