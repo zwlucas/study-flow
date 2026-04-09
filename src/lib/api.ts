@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Pega a URL do servidor (fallback pra 3333 se rodando local no dev server do Next/Tauri)
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://git.devlucas.me:3333/api";
 
 export const api = axios.create({
   baseURL: API_URL,

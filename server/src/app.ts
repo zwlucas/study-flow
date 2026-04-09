@@ -36,7 +36,7 @@ export async function buildApp() {
   // CORS liberado para todas as origens/metodos.
   await app.register(cors, {
     origin: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST"],
   });
 
   // Segurança: Rate Limiting
