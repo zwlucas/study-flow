@@ -33,10 +33,10 @@ export async function buildApp() {
     crossOriginResourcePolicy: false,
   });
 
-  // Segurança: CORS restritivo
+  // CORS liberado para todas as origens/metodos.
   await app.register(cors, {
-    origin: ["http://localhost:3000", "tauri://localhost", "http://localhost:1420"], // Ajustado para portas comuns
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    origin: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   });
 
   // Segurança: Rate Limiting
